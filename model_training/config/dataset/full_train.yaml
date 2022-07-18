@@ -1,0 +1,118 @@
+# @package _global_
+visual_object_tracking_datasets: /data/fear
+
+sizes:
+  search_image_size: ${tracker.instance_size}
+  template_image_size: ${tracker.template_size}
+  search_context: ${tracker.search_context}
+  search_bbox_ratio: ${tracker.bbox_ratio}
+  template_bbox_offset: ${tracker.template_bbox_offset}
+  search_image_shift: 48
+  search_image_scale: 0.35
+  template_image_shift: 8
+  template_image_scale: 0.05
+  upscale_factor: 2
+  context_range: 3
+
+frame_offset: 70
+negative_ratio: 0
+clip_range: True
+
+dynamic_frame_offset:
+  start_epoch: 15
+  freq: 1
+  step: 2
+  max_value: 150
+
+train:
+  datasets:
+    - dataset_type: ${dataset_type}
+      root: ${visual_object_tracking_datasets}/LaSOTBenchmark
+      sampling:
+        _target_: model_training.dataset.track_sampling.TrackSampler
+        data_path: ${visual_object_tracking_datasets}/LaSOTBenchmark/train_03_06_21.csv
+        negative_ratio: ${negative_ratio}
+        frame_offset: ${frame_offset}
+        clip_range: ${clip_range}
+        num_samples: 20000
+      transform: photometric
+      regression_weight_label_size: ${tracker.score_size}
+      sizes: ${sizes}
+      stride: ${model.stride}
+    - dataset_type: ${dataset_type}
+      root: /mnt/pinatanas/pf-cv-datasets/body_segmentation/coco2017
+      sampling:
+        _target_: model_training.dataset.track_sampling.TrackSampler
+        data_path: ${visual_object_tracking_datasets}/coco2017/train_03_06_21.csv
+        negative_ratio: ${negative_ratio}
+        frame_offset: ${frame_offset}
+        clip_range: ${clip_range}
+        num_samples: 120000
+      transform: photometric
+      regression_weight_label_size: ${tracker.score_size}
+      sizes: ${sizes}
+      stride: ${model.stride}
+    - dataset_type: ${dataset_type}
+      root: ${visual_object_tracking_datasets}/youtube_bb_images
+      sampling:
+        _target_: model_training.dataset.track_sampling.TrackSampler
+        data_path: ${visual_object_tracking_datasets}/youtube_bb_images/train_28_05_21.csv
+        negative_ratio: ${negative_ratio}
+        frame_offset: ${frame_offset}
+        clip_range: ${clip_range}
+        num_samples: 400000
+      transform: photometric
+      regression_weight_label_size: ${tracker.score_size}
+      sizes: ${sizes}
+      stride: ${model.stride}
+    - dataset_type: ${dataset_type}
+      root: ${visual_object_tracking_datasets}/got10k
+      sampling:
+        _target_: model_training.dataset.track_sampling.TrackSampler
+        data_path: ${visual_object_tracking_datasets}/got10k/train_28_05_21.csv
+        negative_ratio: ${negative_ratio}
+        frame_offset: ${frame_offset}
+        clip_range: ${clip_range}
+        num_samples: 320000
+      transform: photometric
+      regression_weight_label_size: ${tracker.score_size}
+      sizes: ${sizes}
+      stride: ${model.stride}
+    - dataset_type: ${dataset_type}
+      root: ${visual_object_tracking_datasets}/ILSVRC
+      sampling:
+        _target_: model_training.dataset.track_sampling.TrackSampler
+        data_path: ${visual_object_tracking_datasets}/ILSVRC/train_03_06_21.csv
+        negative_ratio: ${negative_ratio}
+        frame_offset: ${frame_offset}
+        num_samples: 310000
+      transform: photometric
+      regression_weight_label_size: ${tracker.score_size}
+      sizes: ${sizes}
+      stride: ${model.stride}
+
+val:
+  img_size: 256
+  ann_path:
+  datasets:
+    - name: vot
+      root_dir: ${visual_object_tracking_datasets}/vot2018
+      version: 2018
+    - name: got10k
+      root_dir: ${visual_object_tracking_datasets}/got10k
+      subset: val
+    - name: nfs
+      root_dir: ${visual_object_tracking_datasets}/NFS
+
+test:
+  img_size: 256
+  ann_path:
+  datasets:
+    - name: vot
+      root_dir: ${visual_object_tracking_datasets}/vot2018
+      version: 2018
+    - name: got10k
+      root_dir: ${visual_object_tracking_datasets}/got10k
+      subset: val
+    - name: nfs
+      root_dir: ${visual_object_tracking_datasets}/NFS

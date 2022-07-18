@@ -1,0 +1,7 @@
+# @package _group_
+aux_losses:
+  TARGET_CLASSIFICATION_KEY:
+    name: bce
+coeffs:
+  TARGET_CLASSIFICATION_KEY: 1
+  TARGET_REGRESSION_LABEL_KEY: 1

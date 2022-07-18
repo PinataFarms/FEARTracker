@@ -1,0 +1,11 @@
+# @package _global_
+local_run: True
+min_epochs: 1
+max_epochs: 1
+sanity_steps: 1
+progress_bar_refresh_rate: 1
+train_percent: 8
+val_percent: 8
+test_percent: 1
+batch_size: 2
+num_workers: 1

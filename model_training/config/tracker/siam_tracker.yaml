@@ -1,0 +1,16 @@
+# @package _group_
+_target_: model_training.tracker.fear_tracker.FEARTracker
+penalty_k: 0.062
+window_influence: 0.38
+lr: 0.765
+windowing: cosine
+total_stride: 16
+score_size: 16
+ratio: 0.94
+stride: ${model.stride}
+
+bbox_ratio: 0.5
+template_bbox_offset: 0.2
+search_context: 2
+instance_size: 256
+template_size: 128

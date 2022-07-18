@@ -1,0 +1,26 @@
+# @package _global_
+phase: train
+task: Visual Object Tracking
+
+sampler: none
+min_epochs: 100
+max_epochs: 150
+early_stopping: 20
+batch_size:
+  train: 128
+  val: 1
+num_workers: 4
+save_top_k: 3
+
+parallel: False
+num_classes: 1
+
+metric_to_monitor: valid/metrics/box_iou
+metric_mode: max
+
+replace_sampler_ddp: False
+
+best_worst_miner:
+  max_images: 16
+  metric_to_monitor: loss
+  metric_mode: min

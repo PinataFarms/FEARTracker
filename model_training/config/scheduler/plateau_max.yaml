@@ -1,0 +1,8 @@
+# @package _group_
+name: plateau
+mode: max
+patience: 10
+factor: 0.5
+min_lr: 1e-6
+
+warmup_steps: 200

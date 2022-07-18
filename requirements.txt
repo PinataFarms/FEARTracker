@@ -1,0 +1,22 @@
+albumentations==1.0.0
+albumentations-experimental==0.0.1
+coloredlogs==15.0.1
+coremltools==5.1.0
+Cython==0.29.14
+fire==0.3.1
+hydra-core==1.0.6
+-e git+https://github.com/facebookresearch/mobile-vision.git@51804a6873ae1029257cf652179c960cceeecc75#egg=mobile_cv
+numpy==1.17.3
+omegaconf==2.0.6
+opencv-contrib-python-headless==4.4.0.42
+pandas==1.1.3
+pytorch-lightning==1.3.1
+pytorch-toolbelt==0.4.3
+pytorchcv==0.0.65
+tensorboard==2.4.1
+torch==1.7.1
+torchmetrics==0.3.2
+torchvision==0.8.2
+thop==0.0.31-2005241907
+xtcocotools==1.9
+git+https://github.com/KupynOrest/toolkit.git

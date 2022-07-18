@@ -1,0 +1,17 @@
+# @package _global_
+
+hydra:
+  run:
+    dir: ../experiments/${now:%Y-%m-%d-%H-%M-%S}_Tracking_${experiment.name}
+
+defaults:
+  - backend: 1gpu
+  - dataset: got10k_train
+  - model: mobile_track
+  - loss: fear_loss
+  - optimizer: adam
+  - scheduler: plateau_max
+  - train_stage: tracker
+  - tracker: siam_tracker
+  - utility_overrides: none
+  - property_overrides: mobile_tracker

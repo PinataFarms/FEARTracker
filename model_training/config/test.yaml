@@ -1,0 +1,23 @@
+# @package _global_
+hydra:
+  output_subdir: null
+  sweep:
+    subdir: ${hydra.job.num}
+  sweeper:
+    ax_config:
+      max_trials: 50
+      early_stop:
+        minimize: false
+        max_epochs_without_improvement: 40
+        epsilon: 1.0e-05
+      experiment:
+        minimize: false
+
+weights_path:
+
+defaults:
+  - dataset: full_train
+  - model: efficientnet_b3b
+  - tracker: ocean_tracker
+  - property_overrides: ocean_tracker
+  - hydra/sweeper: ax

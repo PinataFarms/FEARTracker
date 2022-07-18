@@ -1,0 +1,4 @@
+# @package _global_
+experiment:
+  name: MobileTrack
+dataset_type: siam

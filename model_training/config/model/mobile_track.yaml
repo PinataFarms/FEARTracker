@@ -1,0 +1,18 @@
+# @package _group_
+_target_: model_training.model.fear_net.FEARNet
+backbone: custom_fbnet
+growth_factor: 1.2
+upsample: pixel_shuffle
+pretrained: true
+num_classes: 1
+num_filters: 32
+num_channels: 3
+align: false
+img_size: 256
+stride: 2
+conv_block: sep_conv
+towernum: 2
+mobile: true
+
+max_layer: 4
+crop_template_features: False

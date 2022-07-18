@@ -1,0 +1,16 @@
+PODS:
+  - CSV.swift (2.4.3)
+
+DEPENDENCIES:
+  - CSV.swift (~> 2.4.3)
+
+SPEC REPOS:
+  trunk:
+    - CSV.swift
+
+SPEC CHECKSUMS:
+  CSV.swift: d38741b349c067b4a6db42237cb0e2974d21ccac
+
+PODFILE CHECKSUM: 8905a9b80a642225511ff6e0585617bd425c42fe
+
+COCOAPODS: 1.10.1
