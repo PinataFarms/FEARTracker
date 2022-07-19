@@ -90,3 +90,16 @@ PYTHONPATH=. python model_training/train.py backend=2gpu
 # or the following for full train
 PYTHONPATH=. python model_training/train.py dataset=full_train backend=2gpu
 ```
+
+## Citation
+
+If you use the FEAR Tracker benchmark, demo or training code (implicitly or explicitly) - for your research projects, please cite the following paper:
+
+```
+@article{fear_tracker,
+  title={FEAR: Fast, Efficient, Accurate and Robust Visual Tracker},
+  author={Borsuk, Vasyl and Vei, Roman and Kupyn, Orest and Martyniuk, Tetiana and Krashenyi, Igor and Matas, Ji{\v{r}}i},
+  journal={arXiv preprint arXiv:2112.07957},
+  year={2021}
+}
+```
