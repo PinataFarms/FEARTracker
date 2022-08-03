@@ -49,6 +49,12 @@ This command will produce a file with the model in CoreML format (`Model.mlmodel
 PYTHONPATH=. python evaluate/macs_params.py
 ```
 
+## Demo inference with python
+```shell
+PYTHONPATH=. python inference.py --initial_bbox=[163,53,45,174] \
+--video_path=assets/test.mp4 \
+--output_path=outputs/test.mp4
+```
 ## Demo app for iOS
 
 [Demo app screen recording](https://user-images.githubusercontent.com/24678253/179550055-689ee927-ff22-4c19-8087-539623cb1c2c.mp4)

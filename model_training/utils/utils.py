@@ -176,7 +176,7 @@ def unravel_index(index: Any, shape: Tuple[int, int]) -> Tuple[int, ...]:
     out = []
     for dim in reversed(shape):
         out.append(index % dim)
-        index = torch.div(index, dim, rounding_mode="floor")
+        index = index // dim
     return tuple(reversed(out))
 
 
