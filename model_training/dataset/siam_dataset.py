@@ -6,7 +6,7 @@ import torch
 from pytorch_toolbelt.utils import image_to_tensor
 
 from model_training.dataset.aug import TRACKING_AUGMENTATIONS
-from model_training.dataset.box_coder import MobileTrackBoxCoder
+from model_training.dataset.box_coder import FEARBoxCoder
 from model_training.dataset.tracking_dataset import TrackingDataset
 from model_training.dataset.utils import get_regression_weight_label
 from model_training.utils.utils import ensure_bbox_boundaries
@@ -28,7 +28,7 @@ logger = create_logger(__name__)
 class SiameseTrackingDataset(TrackingDataset):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        self.box_coder = MobileTrackBoxCoder(config["tracker"])
+        self.box_coder = FEARBoxCoder(config["tracker"])
 
     def _transform(self, item_data: Any) -> Any:
         search_presence = item_data["search_presence"]

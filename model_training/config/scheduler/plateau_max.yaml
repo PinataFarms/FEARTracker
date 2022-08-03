@@ -1,4 +1,3 @@
-# @package _group_
 name: plateau
 mode: max
 patience: 10

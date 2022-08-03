@@ -58,7 +58,7 @@ class CoreMLTrackingWrapper(torch.nn.Module):
 
 
 def main(
-    config_path: str = "model_training/config/model/mobile_track.yaml",
+    config_path: str = "model_training/config/model/fear.yaml",
     weights_path: Optional[str] = "evaluate/checkpoints/FEAR-XS-NoEmbs.ckpt",
 ):
     config = load_yaml(config_path)

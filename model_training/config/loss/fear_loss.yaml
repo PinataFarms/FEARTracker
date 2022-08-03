@@ -1,4 +1,3 @@
-# @package _group_
 aux_losses:
   TARGET_CLASSIFICATION_KEY:
     name: bce

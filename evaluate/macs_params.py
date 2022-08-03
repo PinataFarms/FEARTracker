@@ -17,7 +17,7 @@ class ProfileTrackingWrapper(torch.nn.Module):
         return [pred["TARGET_REGRESSION_LABEL_KEY"], pred["TARGET_CLASSIFICATION_KEY"]]
 
 
-def main(config_path: str = "model_training/config/model/mobile_track.yaml"):
+def main(config_path: str = "model_training/config/model/fear.yaml"):
     config = load_yaml(config_path)
     model = instantiate(config)
     model = ProfileTrackingWrapper(model)

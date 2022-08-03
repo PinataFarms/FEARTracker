@@ -1,4 +1,3 @@
-# @package _group_
 name: sgd
 lr: 0.01
 momentum: 0.9

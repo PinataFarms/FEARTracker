@@ -4,7 +4,7 @@ from typing import Dict, Any, Tuple
 import numpy as np
 import torch
 
-from model_training.dataset.box_coder import TrackerDecodeResult, MobileTrackBoxCoder
+from model_training.dataset.box_coder import TrackerDecodeResult, FEARBoxCoder
 from model_training.utils.utils import get_extended_crop, clamp_bbox
 from model_training.tracker import Tracker
 from model_training.utils.constants import TARGET_CLASSIFICATION_KEY, TARGET_REGRESSION_LABEL_KEY
@@ -12,7 +12,7 @@ from model_training.utils.constants import TARGET_CLASSIFICATION_KEY, TARGET_REG
 
 class FEARTracker(Tracker):
     def get_box_coder(self, tracking_config, cuda_id: int = 0):
-        return MobileTrackBoxCoder(tracker_config=tracking_config)
+        return FEARBoxCoder(tracker_config=tracking_config)
 
     def initialize(self, image: np.ndarray, rect: np.array, **kwargs) -> None:
         """

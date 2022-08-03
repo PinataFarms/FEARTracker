@@ -22,7 +22,7 @@ def train(config: Dict[str, Any]) -> None:
     trainer.fit(model)
 
 
-@hydra.main(config_name="mobile_tracker", config_path="config")
+@hydra.main(config_name="fear_tracker", config_path="config")
 def run_experiment(hydra_config: DictConfig) -> None:
     config = prepare_experiment(hydra_config)
     logger.info("Experiment dir %s" % config["experiment"]["folder"])

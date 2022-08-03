@@ -1,4 +1,3 @@
-# @package _group_
 _target_: model_training.tracker.fear_tracker.FEARTracker
 penalty_k: 0.062
 window_influence: 0.38

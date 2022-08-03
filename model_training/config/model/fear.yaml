@@ -1,4 +1,3 @@
-# @package _group_
 _target_: model_training.model.fear_net.FEARNet
 backbone: custom_fbnet
 growth_factor: 1.2
