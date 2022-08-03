@@ -7,11 +7,11 @@ hydra:
 defaults:
   - backend: 1gpu
   - dataset: got10k_train
-  - model: mobile_track
+  - model: fear
   - loss: fear_loss
   - optimizer: adam
   - scheduler: plateau_max
   - train_stage: tracker
   - tracker: siam_tracker
   - utility_overrides: none
-  - property_overrides: mobile_tracker
+  - property_overrides: fear_tracker

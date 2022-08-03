@@ -172,11 +172,11 @@ def get_subwindow_tracking(
     return im_patch, crop_info
 
 
-def unravel_index(index: int, shape: Tuple[int, int]) -> Tuple[int, ...]:
+def unravel_index(index: Any, shape: Tuple[int, int]) -> Tuple[int, ...]:
     out = []
     for dim in reversed(shape):
         out.append(index % dim)
-        index = index // dim
+        index = torch.div(index, dim, rounding_mode="floor")
     return tuple(reversed(out))
 
 

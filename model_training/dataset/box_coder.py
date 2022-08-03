@@ -50,7 +50,7 @@ class BoxCoder(ABC):
         pass
 
 
-class MobileTrackBoxCoder(BoxCoder):
+class FEARBoxCoder(BoxCoder):
     def __init__(self, tracker_config: Dict[str, Any]) -> None:
         super().__init__(tracker_config=tracker_config)
 
@@ -114,6 +114,6 @@ def get_box_coder(tracker_config: Dict[str, Any], tracker_name: str = "ocean") -
     :param tracker_name: str - name of the tracker
     :return: box_coder: BoxCoder - box coder instance
     """
-    if tracker_name == "mobile_track":
-        return MobileTrackBoxCoder(tracker_config=tracker_config)
+    if tracker_name == "fear":
+        return FEARBoxCoder(tracker_config=tracker_config)
     return None

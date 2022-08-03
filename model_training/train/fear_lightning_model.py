@@ -11,7 +11,7 @@ from torch.utils.data import ConcatDataset
 from torchmetrics import MetricCollection
 from torchvision.ops import box_convert, box_iou
 
-from model_training.dataset.box_coder import TrackerDecodeResult, MobileTrackBoxCoder
+from model_training.dataset.box_coder import TrackerDecodeResult, FEARBoxCoder
 from model_training.dataset.utils import read_img
 from model_training.metrics import DatasetAwareMetric, BoxIoUMetric, TrackingFailureRateMetric, box_iou_metric
 from model_training.train.base_lightning_model import BaseLightningModel
@@ -42,7 +42,7 @@ class FEARLightningModel(BaseLightningModel):
     def __init__(self, model, config, train, val) -> None:
         super().__init__(model, config, train, val)
         self.tracker = instantiate(config["tracker"], model=self.model)
-        self.box_coder = MobileTrackBoxCoder(tracker_config=config["tracker"])
+        self.box_coder = FEARBoxCoder(tracker_config=config["tracker"])
         self.metrics = MetricCollection(
             {
                 "box_iou": BoxIoUMetric(compute_on_step=True),

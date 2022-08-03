@@ -1,4 +1,4 @@
 # @package _global_
 experiment:
-  name: MobileTrack
+  name: FEAR
 dataset_type: siam
