@@ -7,7 +7,7 @@ fire==0.3.1
 hydra-core==1.1.0
 -e git+https://github.com/facebookresearch/mobile-vision.git@51804a6873ae1029257cf652179c960cceeecc75#egg=mobile_cv
 numpy==1.17.3
-omegaconf==2.0.6
+omegaconf==2.1.2
 opencv-contrib-python-headless==4.4.0.42
 pandas==1.1.3
 pytorch-lightning==1.3.1
@@ -19,6 +19,6 @@ torchmetrics==0.3.2
 torchvision==0.8.2
 thop==0.0.31-2005241907
 xtcocotools==1.9
-imageio=2.20.0
+imageio==2.20.0
 imageio-ffmpeg==0.4.7
 git+https://github.com/KupynOrest/toolkit.git
