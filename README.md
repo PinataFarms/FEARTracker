@@ -51,7 +51,7 @@ PYTHONPATH=. python evaluate/macs_params.py
 
 ## Demo inference with Python
 ```shell
-PYTHONPATH=. python inference.py --initial_bbox=[163,53,45,174] \
+PYTHONPATH=. python demo_video.py --initial_bbox=[163,53,45,174] \
 --video_path=assets/test.mp4 \
 --output_path=outputs/test.mp4
 ```
