@@ -49,7 +49,7 @@ This command will produce a file with the model in CoreML format (`Model.mlmodel
 PYTHONPATH=. python evaluate/macs_params.py
 ```
 
-## Demo inference with python
+## Demo inference with Python
 ```shell
 PYTHONPATH=. python inference.py --initial_bbox=[163,53,45,174] \
 --video_path=assets/test.mp4 \
