@@ -37,7 +37,7 @@ class VOTracker {
     private struct TrackerState {
         let templateFeatures: MLMultiArray
         let lastRectangle: CGRect
-        //        let meanColor: [UInt8]
+        let meanColor: CIColor
     }
 
     /// Feature extraction network
@@ -63,9 +63,11 @@ class VOTracker {
     public var isInitialized: Bool { state != nil }
 
     public func initialize(image: CVPixelBuffer, rect: CGRect) throws {
-        let input = try preprocessImage(image: image, rect: rect, cropSize: CGFloat(Constants.templateSize), offset: Constants.templateOffset)
+        let meanColor = computeMeanColor(image: image) ?? .black
+        let input = try preprocessImage(image: image, rect: rect, cropSize: CGFloat(Constants.templateSize),
+                                        offset: Constants.templateOffset, paddingColor: meanColor)
         let result = try modelInit.prediction(image: input.image)
-        self.state = TrackerState(templateFeatures: result.features, lastRectangle: rect)
+        self.state = TrackerState(templateFeatures: result.features, lastRectangle: rect, meanColor: meanColor)
     }
 
     public func track(image: CVPixelBuffer) throws -> VOTrackerResult {
@@ -73,7 +75,8 @@ class VOTracker {
             throw VOTrackerError.uninitializedError
         }
 
-        let input = try preprocessImage(image: image, rect: state.lastRectangle, cropSize: CGFloat(Constants.searchSize), offset: Constants.searchOffset)
+        let input = try preprocessImage(image: image, rect: state.lastRectangle, cropSize: CGFloat(Constants.searchSize),
+                                        offset: Constants.searchOffset, paddingColor: state.meanColor)
 
         // predict and decode
         let output = try model.prediction(image: input.image, template_features: state.templateFeatures)
@@ -90,7 +93,7 @@ class VOTracker {
         let rect = result.bbox.applying(rectTransform)
 
         // update state
-        self.state = TrackerState(templateFeatures: state.templateFeatures, lastRectangle: rect)
+        self.state = TrackerState(templateFeatures: state.templateFeatures, lastRectangle: rect, meanColor: state.meanColor)
 
         return VOTrackerResult(bbox: rect, confidence: result.confidence)
     }
@@ -108,7 +111,7 @@ private extension VOTracker {
         let paddedRect: CGRect
     }
 
-    func preprocessImage(image: CVPixelBuffer, rect: CGRect, cropSize: CGFloat, offset: CGFloat) throws -> PreprocessedImage {
+    func preprocessImage(image: CVPixelBuffer, rect: CGRect, cropSize: CGFloat, offset: CGFloat, paddingColor: CIColor) throws -> PreprocessedImage {
         let pixelFormat = CVPixelBufferGetPixelFormatType(image)
         guard let targetBuffer = createPixelBuffer(width: Int(cropSize), height: Int(cropSize), pixelFormat: pixelFormat) else {
             throw VOTrackerError.preprocessingError
@@ -148,8 +151,26 @@ private extension VOTracker {
             .transformed(by: .init(scaleX: 1, y: -1))
             .transformed(by: .init(translationX: 0, y: cropSize))
 
-        ciContext.render(ciImage, to: targetBuffer, bounds: CGRect(x: 0, y: 0, width: cropSize, height: cropSize), colorSpace: ciImage.colorSpace)
+        let ciBackground = CIImage(color: paddingColor).cropped(to: CGRect(x: 0, y: 0, width: cropSize, height: cropSize))
+        let ciResult = ciImage.composited(over: ciBackground)
+
+        ciContext.render(ciResult, to: targetBuffer, bounds: CGRect(x: 0, y: 0, width: cropSize, height: cropSize), colorSpace: ciImage.colorSpace)
         return PreprocessedImage(image: targetBuffer, searchRect: paddedRect.applying(scaleTransform), paddedRect: context)
+    }
+
+    func computeMeanColor(image: CVPixelBuffer) -> CIColor? {
+        let inputImage = CIImage(cvPixelBuffer: image)
+        let extentVector = CIVector(x: inputImage.extent.origin.x, y: inputImage.extent.origin.y,
+                                    z: inputImage.extent.size.width, w: inputImage.extent.size.height)
+
+        guard let filter = CIFilter(name: "CIAreaAverage", parameters: [kCIInputImageKey: inputImage, kCIInputExtentKey: extentVector]),
+              let outputImage = filter.outputImage
+        else { return nil }
+
+        var bitmap = [UInt8](repeating: 0, count: 4)
+        ciContext.render(outputImage, toBitmap: &bitmap, rowBytes: 4, bounds: CGRect(x: 0, y: 0, width: 1, height: 1), format: .RGBA8, colorSpace: nil)
+
+        return CIColor(red: CGFloat(bitmap[0]) / 255, green: CGFloat(bitmap[1]) / 255, blue: CGFloat(bitmap[2]) / 255, alpha: CGFloat(bitmap[3]) / 255)
     }
 }
 
