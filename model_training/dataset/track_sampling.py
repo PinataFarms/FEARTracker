@@ -70,7 +70,8 @@ class TrackSampler(ItemSampler):
         data = pd.read_csv(self.data_path)
         negative = data[data["presence"] == 0]
         negative_ratio = len(negative) / len(data)
-        num_neg_samples_to_drop = max(0, int((negative_ratio - self.negative_ratio) * len(data)))
+        num_neg_samples_to_keep = max(0, int(min(negative_ratio, self.negative_ratio) * len(data)))
+        num_neg_samples_to_drop = len(negative) - num_neg_samples_to_keep
         dropped_negatives = np.random.choice(negative.index, num_neg_samples_to_drop, replace=False)
         data = data.drop(dropped_negatives)
         data = data.reset_index(drop=True)
