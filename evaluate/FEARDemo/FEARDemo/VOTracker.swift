@@ -41,20 +41,20 @@ class VOTracker {
     }
 
     /// Feature extraction network
-    private lazy var modelInit: TrackerInit = {
+    private let modelInit: TrackerInit = {
         let config = MLModelConfiguration()
         config.computeUnits = .all
         return try! TrackerInit(configuration: config)
     }()
 
     /// Tracking network
-    private lazy var model: Tracker = {
+    private let model: Tracker = {
         let config = MLModelConfiguration()
         config.computeUnits = .all
         return try! Tracker(configuration: config)
     }()
 
-    private lazy var ciContext: CIContext = {
+    private let ciContext: CIContext = {
         return CIContext(options: nil)
     }()
 
