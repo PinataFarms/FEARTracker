@@ -20,22 +20,8 @@ class FEARTrackingViewController: ViewController {
     /// button to start processing
     lazy var startButton: UIButton = {
         let button = UIButton()
-        button.backgroundColor = .red
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
-    }()
-
-    /// red rectangle used to enter object location
-    lazy var rectangle: UIView = {
-        let width = Constants.imageWidth * previewLayer.bounds.height / Constants.imageHeight
-        let rectFrame = Constants.rect.applying(
-            CGAffineTransform(translationX: -(width - previewLayer.bounds.width) / 2, y: 0)
-                .scaledBy(x: width, y: previewView.frame.height)
-        )
-        let rect = UIView(frame: rectFrame)
-        rect.layer.borderWidth = 8
-        rect.layer.borderColor = UIColor.red.cgColor
-        return rect
     }()
 
     /// container layer that has all the renderings of the observations
@@ -77,7 +63,7 @@ class FEARTrackingViewController: ViewController {
     override func setupAVCapture() {
         super.setupAVCapture()
 
-        updateLayerGeometry()
+        drawSelectionRectangle()
 
         // start the capture
         startCaptureSession()
@@ -93,29 +79,44 @@ class FEARTrackingViewController: ViewController {
         previewView.addSubview(startButton)
 
         startButton.centerXAnchor.constraint(equalTo: previewView.centerXAnchor).isActive = true
-        startButton.bottomAnchor.constraint(equalTo: previewView.bottomAnchor, constant: -25).isActive = true
-        startButton.heightAnchor.constraint(equalToConstant: 50).isActive = true
-        startButton.widthAnchor.constraint(equalToConstant: 50).isActive = true
+        startButton.bottomAnchor.constraint(equalTo: previewView.bottomAnchor, constant: -40).isActive = true
+        startButton.heightAnchor.constraint(equalToConstant: 80).isActive = true
+        startButton.widthAnchor.constraint(equalToConstant: 80).isActive = true
         startButton.addTarget(self, action: #selector(nextButtonPressed), for: .touchUpInside)
-        previewView.addSubview(rectangle)
+    }
+
+    override func viewDidLayoutSubviews() {
+        applyRoundedCorners(for: startButton)
+        drawCircle(in: startButton)
     }
 
     @objc func nextButtonPressed() {
         startButton.isHidden = true
-        rectangle.isHidden = true
         processingEnabled = true
     }
 
     func trackingFailed() {
         startButton.isHidden = false
-        rectangle.isHidden = false
         processingEnabled = false
         tracker.clear()
+        drawSelectionRectangle()
     }
 }
 
 // MARK: - visualizations
 private extension FEARTrackingViewController {
+
+    func drawSelectionRectangle() {
+        CATransaction.begin()
+        CATransaction.setValue(kCFBooleanTrue, forKey: kCATransactionDisableActions)
+        detectionOverlay.sublayers = nil // remove all the old recognized objects
+
+        let rectFrame = Constants.rect.applying(.init(scaleX: Constants.imageWidth, y: Constants.imageHeight))
+        let selectionLayer = createSelectionRectLayerWithBounds(rectFrame)
+        detectionOverlay.addSublayer(selectionLayer)
+        self.updateLayerGeometry()
+        CATransaction.commit()
+    }
 
     func drawVisionRequestResults(detections: [VOTrackerResult]) {
         CATransaction.begin()
@@ -177,5 +178,42 @@ private extension FEARTrackingViewController {
         shapeLayer.cornerRadius = 7
         return shapeLayer
     }
+
+    func createSelectionRectLayerWithBounds(_ bounds: CGRect) -> CALayer {
+        let shapeLayer = CALayer()
+        shapeLayer.bounds = bounds
+        shapeLayer.position = CGPoint(x: bounds.midX, y: bounds.midY)
+        shapeLayer.name = "Selection Rectangle"
+        shapeLayer.borderWidth = 3
+        shapeLayer.borderColor = CGColor(colorSpace: CGColorSpaceCreateDeviceRGB(), components: [0.945, 0.769, 0.059, 1])
+        shapeLayer.cornerRadius = 7
+        return shapeLayer
+    }
     
+}
+
+private extension FEARTrackingViewController {
+    func applyRoundedCorners(for view: UIView) {
+        view.layer.cornerRadius = view.frame.size.width / 2
+        view.layer.borderColor = UIColor.white.cgColor
+        view.layer.borderWidth = 5.0
+        view.layer.masksToBounds = true
+    }
+
+    func drawCircle(in view: UIView) {
+        let circlePath = UIBezierPath(arcCenter: CGPoint(x: view.frame.size.width / 2, y: view.frame.size.width / 2),
+                                      radius: view.frame.size.width / 2.5,
+                                      startAngle: 0,
+                                      endAngle: CGFloat.pi * 2,
+                                      clockwise: true)
+
+        let shapeLayer = CAShapeLayer()
+        shapeLayer.path = circlePath.cgPath
+        shapeLayer.fillColor = UIColor.white.cgColor
+
+        view.layer.backgroundColor = UIColor.clear.cgColor
+        view.layer.borderWidth = 6
+        view.layer.borderColor = UIColor.white.cgColor
+        view.layer.addSublayer(shapeLayer)
+    }
 }
