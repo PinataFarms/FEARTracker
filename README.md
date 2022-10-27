@@ -60,9 +60,11 @@ PYTHONPATH=. python demo_video.py --initial_bbox=[163,53,45,174] \
 [Demo app screen recording](https://user-images.githubusercontent.com/24678253/179550055-689ee927-ff22-4c19-8087-539623cb1c2c.mp4)
 
 1. Open `evaluate/FEARDemo` project in Xcode.
-2. Connect iOS device to your computer and build the project.
+2. Connect iOS device to your computer and build the project. 
+Make sure to enable developer mode on your iOS device and trust your current apple developer.
+Also, you will need to select a development team under the signing & capabilities pane of the project editor (navigation described here [here](https://developer.apple.com/documentation/xcode/adding-capabilities-to-your-app))
 
-Note: demo app does not contain all preprocessing and postprocessing steps of the tracker so its quality is not the same as in Python.
+Note: demo app does not contain bounding box smoothing postprocessing steps of the tracker so its output is slightly different from Python.
 
 ## Training
 ### Data preparation

@@ -15,7 +15,7 @@ sizes:
   context_range: 3
 
 frame_offset: 70
-negative_ratio: 0
+negative_ratio: 1
 clip_range: True
 
 dynamic_frame_offset:

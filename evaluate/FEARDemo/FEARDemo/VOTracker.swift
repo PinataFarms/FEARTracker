@@ -9,6 +9,7 @@
 import Foundation
 import CoreML
 import Accelerate
+import CoreImage
 
 enum VOTrackerError: Error {
     case preprocessingError
@@ -24,73 +25,158 @@ struct VOTrackerResult {
 class VOTracker {
 
     private enum Constants {
-        static let initSize: Int = 128
-        static let trackSize: Int = 256
+        static let templateSize: Int = 128
+        static let templateOffset: CGFloat = 0.2
+        static let searchSize: Int = 256
+        static let searchOffset: CGFloat = 2
         static let scoreSize: Int = 16
         static let totalStride: Int = 16
         static let threshold: Float = 0.7
     }
 
+    private struct TrackerState {
+        let templateFeatures: MLMultiArray
+        let lastRectangle: CGRect
+        let meanColor: CIColor
+    }
+
     /// Feature extraction network
-    private lazy var modelInit: TrackerInit = {
+    private let modelInit: TrackerInit = {
         let config = MLModelConfiguration()
         config.computeUnits = .all
         return try! TrackerInit(configuration: config)
     }()
 
     /// Tracking network
-    private lazy var model: Tracker = {
+    private let model: Tracker = {
         let config = MLModelConfiguration()
         config.computeUnits = .all
         return try! Tracker(configuration: config)
     }()
 
-    private var templateFeatures: MLMultiArray? = nil
+    private let ciContext: CIContext = {
+        return CIContext(options: nil)
+    }()
 
-    public var isInitialized: Bool { templateFeatures != nil }
+    private var state: TrackerState? = nil
+
+    public var isInitialized: Bool { state != nil }
 
     public func initialize(image: CVPixelBuffer, rect: CGRect) throws {
-        guard let input = resizePixelBuffer(image,
-                                            cropX: Int(rect.minX),
-                                            cropY: Int(rect.minY),
-                                            cropWidth: Int(rect.width),
-                                            cropHeight: Int(rect.height),
-                                            scaleWidth: Constants.initSize,
-                                            scaleHeight: Constants.initSize)
-        else {
-            throw VOTrackerError.preprocessingError
-        }
-        let result = try modelInit.prediction(image: input)
-        templateFeatures = result.features
+        let meanColor = computeMeanColor(image: image) ?? .black
+        let input = try preprocessImage(image: image, rect: rect, cropSize: CGFloat(Constants.templateSize),
+                                        offset: Constants.templateOffset, paddingColor: meanColor)
+        let result = try modelInit.prediction(image: input.image)
+        self.state = TrackerState(templateFeatures: result.features, lastRectangle: rect, meanColor: meanColor)
     }
 
     public func track(image: CVPixelBuffer) throws -> VOTrackerResult {
-        guard let templateFeatures = templateFeatures else {
+        guard let state = state else {
             throw VOTrackerError.uninitializedError
         }
 
-        guard let input = resizePixelBuffer(image, width: Constants.trackSize, height: Constants.trackSize) else {
-            throw VOTrackerError.preprocessingError
-        }
-        let output = try model.prediction(image: input, template_features: templateFeatures)
+        let input = try preprocessImage(image: image, rect: state.lastRectangle, cropSize: CGFloat(Constants.searchSize),
+                                        offset: Constants.searchOffset, paddingColor: state.meanColor)
+
+        // predict and decode
+        let output = try model.prediction(image: input.image, template_features: state.templateFeatures)
         let result = decode(output: output)
         if result.confidence < Constants.threshold {
             throw VOTrackerError.thresholdError
         }
 
-        let scaleX = CGFloat(CVPixelBufferGetWidth(image)) / CGFloat(Constants.trackSize)
-        let scaleY = CGFloat(CVPixelBufferGetHeight(image)) / CGFloat(Constants.trackSize)
-        let rect = result.bbox.applying(
-            CGAffineTransform(scaleX: scaleX, y: scaleY)
-        )
+        // rescale bbox to original image size
+        let scaleX = input.paddedRect.width / CGFloat(Constants.searchSize)
+        let scaleY = input.paddedRect.height / CGFloat(Constants.searchSize)
+        let rectTransform = CGAffineTransform(translationX: input.paddedRect.minX, y: input.paddedRect.minY)
+            .scaledBy(x: scaleX, y: scaleY)
+        let rect = result.bbox.applying(rectTransform)
+
+        // update state
+        self.state = TrackerState(templateFeatures: state.templateFeatures, lastRectangle: rect, meanColor: state.meanColor)
+
         return VOTrackerResult(bbox: rect, confidence: result.confidence)
     }
 
     public func clear() {
-        templateFeatures = nil
+        state = nil
+    }
+}
+
+// MARK: - functions to preprocess image
+private extension VOTracker {
+    struct PreprocessedImage {
+        let image: CVPixelBuffer
+        let searchRect: CGRect
+        let paddedRect: CGRect
     }
 
-    private func decode(output: TrackerOutput) -> (bbox: CGRect, confidence: Float) {
+    func preprocessImage(image: CVPixelBuffer, rect: CGRect, cropSize: CGFloat, offset: CGFloat, paddingColor: CIColor) throws -> PreprocessedImage {
+        let pixelFormat = CVPixelBufferGetPixelFormatType(image)
+        guard let targetBuffer = createPixelBuffer(width: Int(cropSize), height: Int(cropSize), pixelFormat: pixelFormat) else {
+            throw VOTrackerError.preprocessingError
+        }
+
+        let imageWidth = CGFloat(CVPixelBufferGetWidth(image))
+        let imageHeight = CGFloat(CVPixelBufferGetHeight(image))
+
+        let xOffset = offset * rect.width
+        let yOffset = offset * rect.height
+        let context = rect.insetBy(dx: -xOffset, dy: -yOffset)
+
+        let padLeft = max(-context.minX, 0)
+        let padTop = max(-context.minY, 0)
+        let padRight = max(context.minX + context.width - imageWidth, 0)
+        let padBottom = max(context.minY + context.height - imageHeight, 0)
+
+        let cropRect = CGRect(x: context.minX + padLeft, y: context.minY + padTop,
+                              width: context.width - padLeft - padRight, height: context.height - padTop - padBottom)
+        let paddedRect = CGRect(x: rect.minX - context.minX, y: rect.minY - context.minY,
+                                width: rect.width, height: rect.height)
+
+        let scaleTransform = CGAffineTransform(scaleX: cropSize / context.width, y: cropSize / context.height)
+
+        let ciImage = CIImage(cvPixelBuffer: image)
+            // CG -> CI coordinates mapping
+            .transformed(by: .init(scaleX: 1, y: -1))
+            .transformed(by: .init(translationX: 0, y: imageHeight))
+            // crop image and move to origin
+            .cropped(to: cropRect)
+            .transformed(by: .init(translationX: -cropRect.minX, y: -cropRect.minY))
+            // add padding
+            .transformed(by: .init(translationX: padLeft, y: padTop))
+            // apply scale transform
+            .transformed(by: scaleTransform)
+            // CI -> CG coordinates mapping
+            .transformed(by: .init(scaleX: 1, y: -1))
+            .transformed(by: .init(translationX: 0, y: cropSize))
+
+        let ciBackground = CIImage(color: paddingColor).cropped(to: CGRect(x: 0, y: 0, width: cropSize, height: cropSize))
+        let ciResult = ciImage.composited(over: ciBackground)
+
+        ciContext.render(ciResult, to: targetBuffer, bounds: CGRect(x: 0, y: 0, width: cropSize, height: cropSize), colorSpace: ciImage.colorSpace)
+        return PreprocessedImage(image: targetBuffer, searchRect: paddedRect.applying(scaleTransform), paddedRect: context)
+    }
+
+    func computeMeanColor(image: CVPixelBuffer) -> CIColor? {
+        let inputImage = CIImage(cvPixelBuffer: image)
+        let extentVector = CIVector(x: inputImage.extent.origin.x, y: inputImage.extent.origin.y,
+                                    z: inputImage.extent.size.width, w: inputImage.extent.size.height)
+
+        guard let filter = CIFilter(name: "CIAreaAverage", parameters: [kCIInputImageKey: inputImage, kCIInputExtentKey: extentVector]),
+              let outputImage = filter.outputImage
+        else { return nil }
+
+        var bitmap = [UInt8](repeating: 0, count: 4)
+        ciContext.render(outputImage, toBitmap: &bitmap, rowBytes: 4, bounds: CGRect(x: 0, y: 0, width: 1, height: 1), format: .RGBA8, colorSpace: nil)
+
+        return CIColor(red: CGFloat(bitmap[0]) / 255, green: CGFloat(bitmap[1]) / 255, blue: CGFloat(bitmap[2]) / 255, alpha: CGFloat(bitmap[3]) / 255)
+    }
+}
+
+// MARK: - functions to decode model predictions
+private extension VOTracker {
+    func decode(output: TrackerOutput) -> (bbox: CGRect, confidence: Float) {
         let bboxPred = output.bbox
         let clsPred = output.cls
         let mapCols = clsPred.shape[2].intValue
@@ -103,8 +189,8 @@ class VOTracker {
         let row = Int(clsIdx) / mapCols
         let col = Int(clsIdx) % mapCols
 
-        let gridX = (col - Constants.scoreSize / 2) * Constants.totalStride + Constants.trackSize / 2
-        let gridY = (row - Constants.scoreSize / 2) * Constants.totalStride + Constants.trackSize / 2
+        let gridX = (col - Constants.scoreSize / 2) * Constants.totalStride + Constants.searchSize / 2
+        let gridY = (row - Constants.scoreSize / 2) * Constants.totalStride + Constants.searchSize / 2
         let x1 = gridX - bboxPred[Int(clsIdx)].intValue
         let y1 = gridY - bboxPred[Int(clsIdx) + 1 * mapCols * mapRows].intValue
         let x2 = gridX + bboxPred[Int(clsIdx) + 2 * mapCols * mapRows].intValue
