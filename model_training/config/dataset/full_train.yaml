@@ -1,5 +1,5 @@
 # @package _global_
-visual_object_tracking_datasets: /mnt/pinatanas/pf-cv-datasets/visual_object_tracking
+visual_object_tracking_datasets: /data/fear
 
 sizes:
   search_image_size: ${tracker.instance_size}
