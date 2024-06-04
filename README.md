@@ -2,7 +2,7 @@
 
 # FEAR: Fast, Efficient, Accurate and Robust Visual Tracker
 [![Paper](https://img.shields.io/badge/arXiv-2112.07957-brightgreen)](https://arxiv.org/abs/2112.07957)
-[![Conference](https://img.shields.io/badge/ECCV-2022-blue)](https://eccv2022.ecva.net/)
+[![Conference](https://img.shields.io/badge/ECCV-2022-blue)](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136820625.pdf)
 
 </div>
 
@@ -22,11 +22,19 @@ conda create -n py37fear python=3.7
 conda activate py37fear
 pip install -r requirements.txt
 ```
-Note: you might need to remove `xtcocotools` requirement when installing environment on MacOS system for model evaluation.
+**N.B.** You might need to remove `xtcocotools` requirement when installing environment on MacOS system for model evaluation.
+
+## Demo inference with Python
+The FEAR-XS model checkpoint is available in the `evaluate/checkpoints` folder. To run the inference code:
+```shell
+PYTHONPATH=. python demo_video.py --initial_bbox=[163,53,45,174] \
+--video_path=assets/test.mp4 \
+--output_path=outputs/test.mp4
+```
+**N.B.** This FEAR-XS model is releeased without the Dynamic Template Update.
 
 ## FEAR Benchmark
 We provide FEAR evaluation protocol implementation in `evaluate/MeasurePerformance` directory. 
-Also, we provide FEAR-XS model checkpoint without the Dynamic Template Update module; the complete version of the model will be added soon.
 You should do the following steps on MacOS device to evaluate model on iOS device:
 1. Open `evaluate/MeasurePerformance` project in Xcode. 
 You can do this by double-clicking on `evaluate/MeasurePerformance/MeasurePerformance.xcodeproj` file or by opening it from the Open option in Xcode. 
@@ -49,12 +57,6 @@ This command will produce a file with the model in CoreML format (`Model.mlmodel
 PYTHONPATH=. python evaluate/macs_params.py
 ```
 
-## Demo inference with Python
-```shell
-PYTHONPATH=. python demo_video.py --initial_bbox=[163,53,45,174] \
---video_path=assets/test.mp4 \
---output_path=outputs/test.mp4
-```
 ## Demo app for iOS
 
 [Demo app screen recording](https://user-images.githubusercontent.com/24678253/179550055-689ee927-ff22-4c19-8087-539623cb1c2c.mp4)
@@ -64,7 +66,7 @@ PYTHONPATH=. python demo_video.py --initial_bbox=[163,53,45,174] \
 Make sure to enable developer mode on your iOS device and trust your current apple developer.
 Also, you will need to select a development team under the signing & capabilities pane of the project editor (navigation described here [here](https://developer.apple.com/documentation/xcode/adding-capabilities-to-your-app))
 
-Note: demo app does not contain bounding box smoothing postprocessing steps of the tracker so its output is slightly different from Python.
+**N.B.** The demo app does not contain bounding box smoothing postprocessing steps of the tracker so its output is slightly different from Python.
 
 ## Training
 ### Data preparation
@@ -101,13 +103,15 @@ PYTHONPATH=. python model_training/train.py dataset=full_train backend=2gpu
 
 ## Citation
 
-If you use the FEAR Tracker benchmark, demo or training code (implicitly or explicitly) - for your research projects, please cite the following paper:
+If you use the FEAR Tracker benchmark, demo, models or code for your research projects, please cite the following paper:
 
 ```
-@article{fear_tracker,
-  title={FEAR: Fast, Efficient, Accurate and Robust Visual Tracker},
+@inproceedings{borsuk2022fear,
+  title={FEAR: Fast, efficient, accurate and robust visual tracker},
   author={Borsuk, Vasyl and Vei, Roman and Kupyn, Orest and Martyniuk, Tetiana and Krashenyi, Igor and Matas, Ji{\v{r}}i},
-  journal={arXiv preprint arXiv:2112.07957},
-  year={2021}
+  booktitle={European Conference on Computer Vision},
+  pages={644--663},
+  year={2022},
+  organization={Springer}
 }
 ```
